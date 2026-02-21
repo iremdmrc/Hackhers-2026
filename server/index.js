@@ -435,6 +435,21 @@ module.exports.fallbackRisk = fallbackRisk;
 const port = process.env.PORT || 8080;
 
 // Ensure these routes are registered before any 404 handler
+app.get('/', (req, res) =>
+  res.json({
+    ok: true,
+    name: 'SafeCircle Backend',
+    message: 'Backend is running. Visit /health or /api/docs',
+    links: {
+      health: '/health',
+      docs: '/api/docs',
+      scenarios: '/api/scenarios',
+      risk: '/api/risk-assess',
+      memory: '/api/memory-echo',
+      ttsInfo: '/api/tts',
+    },
+  })
+);
 app.get('/health', (req, res) => res.json({ ok: true, ts: Date.now() }));
 app.get('/api/docs', (req, res) => res.json({ ok: true, note: 'docs endpoint is live' }));
 
