@@ -432,16 +432,23 @@ function fallbackRisk(input) {
 
 module.exports.fallbackRisk = fallbackRisk;
 
-// Basic error handler
+const port = process.env.PORT || 8080;
+
+// Ensure these routes are registered before any 404 handler
+app.get('/health', (req, res) => res.json({ ok: true, ts: Date.now() }));
+app.get('/api/docs', (req, res) => res.json({ ok: true, note: 'docs endpoint is live' }));
+
+// 404 catch-all - placed after all routes
+app.use((req, res) => {
+  res.status(404).send('Not Found');
+});
+
+// Basic error handler (must be after routes & 404)
 app.use((err, req, res, next) => {
   console.error(err);
   res.status(500).json({ error: 'server_error' });
 });
 
-const port = process.env.PORT || 8080;
-app.get("/health", (req, res) => {
-  res.json({ ok: true, ts: Date.now() });
-});
 app.listen(port, () => {
   console.log(`Server listening at http://localhost:${port}`);
 });
