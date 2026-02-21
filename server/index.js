@@ -276,11 +276,10 @@ app.post('/api/risk-assess', rateLimitMiddleware, async (req, res) => {
       // attempt common fields used by SDKs
       text = (response?.outputText || response?.text || response?.content || '') + '';
       text = text.trim();
-      console.log('Gemini raw length:', text?.length);
+      console.log('Gemini raw preview:', text.slice(0, 200));
     } catch (err) {
       // SDK failed or not installed -> fallback
       console.error('Gemini SDK error:', err?.message || err);
-      console.error('Gemini failed:', err?.message || err);
       const out = fallbackRisk(body);
       return sendResult(out, 'fallback');
     }
@@ -293,8 +292,8 @@ app.post('/api/risk-assess', rateLimitMiddleware, async (req, res) => {
       try {
         parsed = JSON.parse(text.slice(first, last + 1));
       } catch (parseErr) {
-        console.error('Gemini JSON parse failed:', parseErr?.message);
-        console.error('Gemini parse failed, preview:', text?.slice(0, 200));
+        console.error('Gemini parse failed:', parseErr?.message);
+        console.error('Gemini raw preview:', text?.slice(0, 200));
         parsed = null;
       }
     } else {
@@ -302,13 +301,18 @@ app.post('/api/risk-assess', rateLimitMiddleware, async (req, res) => {
       try {
         parsed = JSON.parse(text);
       } catch (parseErr) {
-        console.error('Gemini JSON parse failed:', parseErr?.message);
-        console.error('Gemini parse failed, preview:', text?.slice(0, 200));
+        console.error('Gemini parse failed:', parseErr?.message);
+        console.error('Gemini raw preview:', text?.slice(0, 200));
         parsed = null;
       }
     }
 
-    if (!parsed || !isFinite(Number(parsed.riskScore))) {
+    // Validate parsed response contains required fields
+    if (
+      !parsed ||
+      !isFinite(Number(parsed.riskScore)) ||
+      !parsed.riskLevel
+    ) {
       const out = fallbackRisk(body);
       return sendResult(out, 'fallback');
     }
