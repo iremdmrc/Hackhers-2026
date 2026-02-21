@@ -256,7 +256,15 @@ app.post('/api/risk-assess', rateLimitMiddleware, async (req, res) => {
   try {
     let text = null;
     try {
-      const { TextGenerationClient } = require('@google/generative-ai');
+      // Support CommonJS require shapes and ESM default shape
+      const genai = require('@google/generative-ai');
+      const TextGenerationClient = genai?.TextGenerationClient || genai?.default?.TextGenerationClient || genai?.TextGeneration || genai?.default?.TextGeneration || null;
+      if (!TextGenerationClient) {
+        console.error('Gemini SDK error: TextGenerationClient not found in @google/generative-ai');
+        const out = fallbackRisk(body);
+        return sendResult(out, 'fallback');
+      }
+
       const client = new TextGenerationClient({ apiKey: key });
 
       const prompt = `Given the scenario input: ${JSON.stringify(
