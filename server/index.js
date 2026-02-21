@@ -272,7 +272,7 @@ app.post('/api/risk-assess', rateLimitMiddleware, async (req, res) => {
 
       const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
       const model = genAI.getGenerativeModel({
-        model: 'gemini-1.5-flash',
+        model: 'gemini-1.5-flash-latest',
         generationConfig: { responseMimeType: 'application/json' },
       });
 
@@ -509,7 +509,7 @@ app.get('/api/gemini-ping', async (req, res) => {
     }
 
     const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
-    const model = genAI.getGenerativeModel({ model: 'gemini-1.5-flash', generationConfig: { responseMimeType: 'application/json' } });
+    const model = genAI.getGenerativeModel({ model: 'gemini-1.5-flash-latest', generationConfig: { responseMimeType: 'application/json' } });
     console.log('Gemini ping start');
     const prompt = 'Return JSON only: {"pong":true}';
     const result = await model.generateContent(prompt);
