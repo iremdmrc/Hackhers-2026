@@ -276,24 +276,26 @@ app.post('/api/risk-assess', rateLimitMiddleware, async (req, res) => {
       return sendResult(out, 'fallback');
     }
 
-    // Robust parsing: try JSON.parse, else extract first {...}
+    // Robust parsing: extract first JSON object by slicing from first '{' to last '}'
     let parsed = null;
-    try {
-      parsed = JSON.parse(text);
-    } catch (e) {
-      // log parse failure and preview, then try to extract JSON substring
-      console.error('Gemini JSON parse failed:', e?.message);
-      console.error('Gemini raw preview:', text?.slice(0, 200));
-      const first = text.indexOf('{');
-      const last = text.lastIndexOf('}');
-      if (first !== -1 && last !== -1 && last > first) {
-        try {
-          parsed = JSON.parse(text.slice(first, last + 1));
-        } catch (e2) {
-          console.error('Gemini JSON parse failed (substring):', e2?.message);
-          console.error('Gemini raw preview:', text?.slice(0, 200));
-          parsed = null;
-        }
+    const first = text?.indexOf('{');
+    const last = text?.lastIndexOf('}');
+    if (first !== -1 && last !== -1 && last > first) {
+      try {
+        parsed = JSON.parse(text.slice(first, last + 1));
+      } catch (parseErr) {
+        console.error('Gemini JSON parse failed:', parseErr?.message);
+        console.error('Gemini raw preview:', text?.slice(0, 200));
+        parsed = null;
+      }
+    } else {
+      // fallback to direct parse attempt
+      try {
+        parsed = JSON.parse(text);
+      } catch (parseErr) {
+        console.error('Gemini JSON parse failed:', parseErr?.message);
+        console.error('Gemini raw preview:', text?.slice(0, 200));
+        parsed = null;
       }
     }
 
